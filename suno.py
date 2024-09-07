@@ -1,13 +1,28 @@
 import requests
 import json
+from dotenv import load_dotenv
 
 import os
 from groq import Groq
+from openai import OpenAI
 
 url = "http://localhost:3000/api/generate"
 api_key = "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"
 ele_ids = ["2a1adcb4-f14b-40b5-9ef0-3547f481b55b"]
 
+load_dotenv()
+
+client = OpenAI(api_key=os.environ.get("OPEN_AI_KEY"))
+
+def genImage(prompt):
+    response = client.images.generate(
+        model="dall-e-3",
+        prompt=prompt,
+        size="1024x1024",
+        quality="standard",
+        n=1,
+    )
+    return response.data[0].url
 
 def create_music(prompt):
     # Define the payload
@@ -145,3 +160,16 @@ def get_image_prompts(lyrics):
 
 prompts = get_image_prompts(lyric)
 print("Extracted Prompts:", prompts)
+image_urls = []
+
+for prompt in prompts:
+    image_urls.append(genImage(prompt))
+
+os.makedirs('images', exist_ok=True)
+
+for i, url in enumerate(image_urls):
+    response = requests.get(url)
+
+    # Open a file in write mode and write the content of the image
+    with open(f'images/image_{i}.jpg', 'wb') as f:
+        f.write(response.content)
