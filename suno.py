@@ -6,13 +6,14 @@ import os
 from groq import Groq
 from openai import OpenAI
 
+load_dotenv()
 url = "http://localhost:3000/api/generate"
-api_key = "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"
+api_key = os.environ.get("GROQ_KEY")
 ele_ids = ["2a1adcb4-f14b-40b5-9ef0-3547f481b55b"]
 
-load_dotenv()
 
 client = OpenAI(api_key=os.environ.get("OPEN_AI_KEY"))
+
 
 def genImage(prompt):
     response = client.images.generate(
@@ -23,6 +24,7 @@ def genImage(prompt):
         n=1,
     )
     return response.data[0].url
+
 
 def create_music(prompt):
     # Define the payload
