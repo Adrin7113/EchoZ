@@ -9,7 +9,8 @@ from openai import OpenAI
 load_dotenv()
 url = "http://localhost:3000/api/generate"
 api_key = os.environ.get("GROQ_KEY")
-ele_ids = ["2a1adcb4-f14b-40b5-9ef0-3547f481b55b"]
+# "2a1adcb4-f14b-40b5-9ef0-3547f481b55b"
+ele_ids = []
 
 
 client = OpenAI(api_key=os.environ.get("OPEN_AI_KEY"))
@@ -124,7 +125,7 @@ if ele_ids:
             print("Error:", response.status_code)
             print(response.text)
 
-    get_req()
+    # get_req()
 
 
 else:
