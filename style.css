@@ -1,0 +1,81 @@
+/* style.css */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #0e1117;
+    color: #ffffff;
+}
+
+.stApp {
+    margin-top: -80px;
+}
+
+.main .block-container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+h1, h2, h3 {
+    color: #FF4B4B;
+}
+
+.stButton > button {
+    background-color: #FF4B4B;
+    color: white;
+    border-radius: 5px;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition-duration: 0.4s;
+}
+
+.stButton > button:hover {
+    background-color: #ff7675;
+}
+
+.stTextInput > div > div > input {
+    border-radius: 5px;
+    border-color: #FF4B4B;
+}
+
+.stFileUploader > div > div > button {
+    background-color: #FF4B4B;
+}
+
+/* Style for the option menu */
+.stSelectbox > div > div > div {
+    background-color: #262730;
+}
+
+/* Custom styles for expander */
+.streamlit-expanderHeader {
+    background-color: #262730;
+    color: #ffffff;
+}
+
+.streamlit-expanderContent {
+    background-color: #1f1f1f;
+    color: #ffffff;
+}
+
+/* Add some padding to the main content */
+.main .block-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+/* Style for form */
+.stForm {
+    background-color: #262730;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+/* Improve readability of help text */
+.stTextInput div[data-baseweb="input"] + div {
+    color: #a3a8b8;
+}
