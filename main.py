@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -8,6 +8,11 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 from openai import OpenAI
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import JSONResponse
+from langchain_helper import get_relevent_context_from_db
+from generate_embeddings import gen_embd
+
 
 # Load environment variables
 load_dotenv()
@@ -150,6 +155,63 @@ def genImage(prompt: str):
     return response.data[0].url
 
 
+def genLyrics(r_context):
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "user", "content": f'''
+            You are an AI lyricist tasked with creating song lyrics based on educational content. Your input will be a chunk of textbook data, and your output should be emotionally resonant song lyrics that capture the essence of the educational material.
+
+    Instructions:
+    1. Analyze the given textbook data for key concepts, themes, and important information.
+    2. Identify the emotional undertones or implications of the material.
+    3. Create lyrics that convey the educational content in a poetic and musical format.
+    4. Structure the lyrics into verses, chorus, and optionally a bridge.
+    5. Use metaphors, imagery, and emotional language to make the educational content more engaging and memorable.
+    6. Ensure that the lyrics maintain scientific accuracy while being creatively expressed.
+    7. Format the output in JSON structure as shown in the example below.
+             
+    
+
+    Your lyrics should follow this structure:
+    - 2-4 verses
+    - A chorus (repeated 1-2 times)
+    - Optionally, a bridge
+    - An outro (if appropriate)
+
+    Example output format:
+
+    ```json
+    [Verse 1]
+    (4 lines of verse)
+
+    [Verse 2]
+    (4 lines of verse)
+
+    [Chorus]
+    (4 lines of chorus)
+
+    [Bridge]
+    (4 lines of bridge, if applicable)
+
+    [Chorus]
+    (Repeat of chorus)
+
+    [Outro]
+    (2-4 lines to conclude the song)
+    ```
+    TEXTBOOK CONTEXT: {r_context}
+
+    Remember to balance educational content with emotional resonance and musical flow. Your lyrics should be both informative and engaging, suitable for being set to music by a separate AI system.
+    '''},
+
+
+        ]
+
+    )
+    print(response)
+
+
 @app.post("/generate")
 def generate(music_prompt: MusicPrompt):
     print("triggered")
@@ -188,6 +250,35 @@ def generate(music_prompt: MusicPrompt):
 def hellow():
     return {"response": "Hello World"}
 
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...), context: str = Form(...)):
+    try:
+        # Save the uploaded file
+        contents = await file.read()
+        file_path = f"uploads/{file.filename}"
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, "wb") as f:
+            f.write(contents)
+
+        # Generate embeddings
+        doc_count = gen_embd(file_path)
+
+        # Retrieve relevant context using the provided context parameter
+        retrieved_context = get_relevent_context_from_db(context)
+
+        # GENRATE SONG LYRIC USING THIS CONTEXT
+        genLyrics(retrieved_context)
+
+        # Print the provided context
+
+        return JSONResponse(content={
+            "message": "File uploaded successfully",
+            "doc_count": doc_count,
+            "retrieved_context": retrieved_context
+        }, status_code=200)
+    except Exception as e:
+        return JSONResponse(content={"message": "File upload failed", "error": str(e)}, status_code=500)
 
 if __name__ == '__main__':
     import uvicorn
