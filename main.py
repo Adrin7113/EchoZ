@@ -43,6 +43,7 @@ class MusicPrompt(BaseModel):
 
 
 def create_music(prompt: str):
+    print("PORMPTT:!!", prompt)
     l = []
     payload = {
         "prompt": prompt,
@@ -72,7 +73,7 @@ def create_music(prompt: str):
                 file_path = os.path.join('music', f'audio_{idx}.mp3')
                 with open(file_path, 'wb') as audio_file:
                     audio_file.write(audio_response.content)
-                print(f"Downloaded: {file_path}")
+                print(f"Accessed: {file_path}")
                 l.append(file_path)
             else:
                 print(f"Failed to download {audio_url}")
@@ -85,6 +86,8 @@ def create_music(prompt: str):
 
 def get_req():
     global lyric
+    global video_url
+    print(ele_ids)
     if ele_ids:
         req_url = f"http://localhost:3000/api/get?ids={ele_ids[0]}"
         response = requests.get(req_url, verify=False)
@@ -93,21 +96,7 @@ def get_req():
             print(data)
             if data and isinstance(data, list):
                 if 'video_url' in data[0]:
-                    video_url = data[0]['video_url']
-                    print("Video URL:", video_url)
-
-                    if not os.path.exists('videos'):
-                        os.makedirs('videos')
-
-                    video_response = requests.get(video_url)
-                    if video_response.status_code == 200:
-                        file_path = os.path.join(
-                            'videos', f'video_{ele_ids[0]}.mp4')
-                        with open(file_path, 'wb') as video_file:
-                            video_file.write(video_response.content)
-                        print(f"Downloaded: {file_path}")
-                    else:
-                        print(f"Failed to download {video_url}")
+                    video_url = f"https://cdn1.suno.ai/{ele_ids[0]}.mp4"
                 else:
                     print("Video URL not found in the response.")
 
@@ -152,9 +141,9 @@ def get_image_prompts(lyrics: str):
 
 def genImage(prompt: str):
     response = client.images.generate(
-        model="dall-e-3",
+        model="dall-e-2",
         prompt=prompt,
-        size="1024x1024",
+        size="512x512",
         quality="standard",
         n=1,
     )
@@ -163,6 +152,7 @@ def genImage(prompt: str):
 
 @app.post("/generate")
 def generate(music_prompt: MusicPrompt):
+    print("triggered")
     prompt = music_prompt.prompt
 
     # Step 1: Create music
@@ -179,18 +169,24 @@ def generate(music_prompt: MusicPrompt):
     image_urls = []
     for prompt in prompts:
         image_urls.append(genImage(prompt))
+        # image_urls.append("ads")
 
     os.makedirs('images', exist_ok=True)
     for i, url in enumerate(image_urls):
         response = requests.get(url)
         with open(f'images/image_{i}.jpg', 'wb') as f:
             f.write(response.content)
-
+    print("Completed!")
     return {
         "audio_files": [f'music/audio_{i}.mp3' for i in range(len(ele_ids))],
-        "video_files": [f'videos/video_{ele_ids[0]}.mp4'],
+        "video_files": [video_url],
         "image_files": [f'images/image_{i}.jpg' for i in range(len(image_urls))]
     }
+
+
+@app.get('/')
+def hellow():
+    return {"response": "Hello World"}
 
 
 if __name__ == '__main__':
